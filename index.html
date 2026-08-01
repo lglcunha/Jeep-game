@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Jeep Militar Gamer</title>
+    <title>Jeep Militar Game</title>
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚙</text></svg>">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap');
 
@@ -75,7 +77,6 @@
             line-height: 1.4;
         }
 
-        /* Oculto por padrão, ativado apenas via script se for mobile */
         #mobile-controls {
             display: none;
             width: 100%;
@@ -127,21 +128,85 @@
             transform: translateY(4px);
             box-shadow: 0 0 0 #2e3b19;
         }
+
+        #start-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 20;
+            gap: 20px;
+        }
+
+        #start-screen h1 {
+            color: #ffcc00;
+            font-size: clamp(24px, 5vw, 42px);
+            text-shadow: 3px 3px #000;
+            margin: 0;
+            text-align: center;
+        }
+
+        #btnStartGame {
+            background: #2ecc71;
+            border: 4px solid #000;
+            color: #fff;
+            font-family: 'Fredoka One', cursive;
+            font-size: 22px;
+            padding: 15px 35px;
+            border-radius: 15px;
+            box-shadow: 0 6px 0 #1b7943;
+            cursor: pointer;
+            outline: none;
+        }
+
+        #btnStartGame:active {
+            transform: translateY(6px);
+            box-shadow: 0 0 0 #1b7943;
+        }
+
+        #orientation-alert {
+            font-size: 13px;
+            color: #ff3333;
+            background: rgba(0,0,0,0.5);
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+
+        @media (max-width: 900px), (pointer: coarse) {
+            #mobile-controls {
+                display: flex;
+            }
+            body {
+                justify-content: flex-start;
+                padding-top: 5px;
+            }
+        }
     </style>
 </head>
 <body>
 
     <div id="game-container">
+        <div id="start-screen">
+            <h1>MOON PATROL - JEEP</h1>
+            <div id="orientation-alert">📱 Posição do Celular: Retrato</div>
+            <button id="btnStartGame">INICIAR JOGO</button>
+        </div>
+
         <div id="ui">
             <div>⭐ PONTOS: <span id="scoreVal">0</span></div>
-            <div>⚡ STATUS: <span id="statusVal" style="color: #00ffcc;">NA PISTA</span></div>
+            <div>⚡ STATUS: <span id="statusVal" style="color: #00ffcc;">AGUARDANDO</span></div>
         </div>
         <canvas id="gameCanvas" width="800" height="400"></canvas>
     </div>
     
     <div id="instructions">
-        🖥️ **PC:** [ESPAÇO/↑] Pular | [→] Atirar Frente | [↑+→] Atirar Cima<br>
-        📱 **Celular (Joystick):** Botão esquerdo [⬆ PULAR] | Direcional direito [🔥 FRENTE] e [🎯 CIMA]
+        🎮 **Como Jogar:** Salte sobre buracos e obstáculos terrestres, desvie ou destrua os inimigos disparando para a frente ou para cima. Você pode **atirar enquanto pula**!
     </div>
 
     <div id="mobile-controls">
@@ -157,37 +222,34 @@
     </div>
 
     <script>
-        // Detecção inteligente de Dispositivo Móvel (Celular/Tablet)
-        function isMobileDevice() {
-            return (
-                /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
-                ('maxTouchPoints' in navigator && navigator.maxTouchPoints > 0) ||
-                window.innerWidth <= 900
-            );
-        }
-
-        // Ativa os controles virtuais na tela apenas se for detectado celular
-        window.addEventListener('DOMContentLoaded', () => {
-            if (isMobileDevice()) {
-                const mobileControls = document.getElementById('mobile-controls');
-                if (mobileControls) {
-                    mobileControls.style.display = 'flex';
-                }
-                document.body.style.justifyContent = 'flex-start';
-                document.body.style.paddingTop = '5px';
-            }
-        });
-
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
 
         const scoreVal = document.getElementById('scoreVal');
         const statusVal = document.getElementById('statusVal');
+        const startScreen = document.getElementById('start-screen');
+        const btnStartGame = document.getElementById('btnStartGame');
+        const orientationAlert = document.getElementById('orientation-alert');
 
+        let gameStarted = false;
         let score = 0;
         let gameOver = false;
         let gameSpeed = 4;
         let distanceTraveled = 0;
+
+        function checkOrientation() {
+            if (window.innerHeight > window.innerWidth) {
+                orientationAlert.innerText = "📱 Posição: Retrato (Vertical) - Vire na horizontal para melhor experiência";
+                orientationAlert.style.color = "#ffcc00";
+            } else {
+                orientationAlert.innerText = "📱 Posição: Paisagem (Horizontal) - Perfeito!";
+                orientationAlert.style.color = "#00ffcc";
+            }
+        }
+
+        window.addEventListener('resize', checkOrientation);
+        window.addEventListener('orientationchange', checkOrientation);
+        checkOrientation();
 
         const keys = {};
         window.addEventListener('keydown', e => {
@@ -213,7 +275,12 @@
         setupTouchButton(btnShoot, 'ArrowRight');
         setupTouchButton(btnShootUp, 'ArrowUp');
 
-        // Jeep do Exército
+        btnStartGame.addEventListener('click', () => {
+            startScreen.style.display = 'none';
+            gameStarted = true;
+            resetGame();
+        });
+
         const rover = {
             x: 100,
             y: 280,
@@ -235,18 +302,15 @@
                     ctx.scale(Math.max(0, 1 - (this.fallRotation / 2.5)), Math.max(0, 1 - (this.fallRotation / 2.5)));
                 }
 
-                // Corpo do Jeep (Verde Militar)
                 ctx.fillStyle = '#556b2f';
                 ctx.strokeStyle = '#000';
                 ctx.lineWidth = 3;
                 
-                // Base inferior
                 ctx.beginPath();
                 ctx.roundRect(-30, -5, 60, 22, 4);
                 ctx.fill();
                 ctx.stroke();
 
-                // Cabine / Para-brisa inclinado
                 ctx.fillStyle = '#3a4d1e';
                 ctx.beginPath();
                 ctx.moveTo(-15, -5);
@@ -257,7 +321,6 @@
                 ctx.fill();
                 ctx.stroke();
 
-                // Vidro frontal azulado
                 ctx.fillStyle = '#87ceeb';
                 ctx.beginPath();
                 ctx.moveTo(-12, -7);
@@ -268,17 +331,14 @@
                 ctx.fill();
                 ctx.stroke();
 
-                // Metralhadora / Canhão em cima
                 ctx.fillStyle = '#222';
                 ctx.fillRect(5, -28, 22, 5);
                 ctx.strokeRect(5, -28, 22, 5);
 
-                // Canhão frontal
                 ctx.fillStyle = '#fff';
                 ctx.fillRect(25, 2, 14, 5);
                 ctx.strokeRect(25, 2, 14, 5);
 
-                // Rodas Grandes de Jeep
                 ctx.fillStyle = '#111';
                 ctx.beginPath();
                 ctx.arc(-20, 17, 10, 0, Math.PI * 2);
@@ -286,7 +346,6 @@
                 ctx.fill();
                 ctx.stroke();
 
-                // Calota Estrela Militar Amarela
                 ctx.fillStyle = '#ffcc00';
                 ctx.beginPath();
                 ctx.arc(-20, 17, 4, 0, Math.PI * 2);
@@ -320,10 +379,11 @@
         };
 
         let bullets = [];
+        let enemyBullets = [];
         let lastShotTime = 0;
 
         function shoot(upward) {
-            if (rover.isFallingInPit || gameOver) return;
+            if (rover.isFallingInPit || gameOver || !gameStarted) return;
             const now = Date.now();
             if (now - lastShotTime > 150) {
                 bullets.push({
@@ -352,7 +412,10 @@
                 width: 35,
                 height: 30,
                 y: 290,
-                shipAngle: 0
+                shipAngle: 0,
+                canShoot: type === 'ship' && Math.random() < 0.5,
+                shootTimer: 0,
+                shootInterval: 70 + Math.random() * 50
             };
 
             if (type === 'pit') {
@@ -408,6 +471,7 @@
             gameOver = false;
             obstacles = [];
             bullets = [];
+            enemyBullets = [];
             gameSpeed = 4;
             rover.y = 280;
             rover.vy = 0;
@@ -419,6 +483,11 @@
         }
 
         function loop() {
+            if (!gameStarted) {
+                drawScene();
+                return;
+            }
+
             if (gameOver && (rover.isFallingInPit ? rover.y > 450 : true)) {
                 drawScene();
                 drawGameOverScreen();
@@ -431,18 +500,16 @@
                 scoreVal.innerText = score;
                 gameSpeed = 4 + Math.floor(score / 200);
 
-                if (keys['Space'] || keys['ArrowUp']) {
-                    if (keys['ArrowRight']) {
-                        shoot(true);
-                    } else if (!keys['ArrowRight'] && keys['ArrowUp'] && !keys['Space']) {
-                        shoot(true);
-                    } else {
-                        rover.jump();
-                    }
+                if (keys['Space']) {
+                    rover.jump();
                 }
-                
+
                 if (keys['ArrowRight']) {
                     shoot(false);
+                }
+
+                if (keys['ArrowUp']) {
+                    shoot(true);
                 }
             }
 
@@ -461,6 +528,21 @@
                     if (obstacles[i].type === 'ship') {
                         obstacles[i].shipAngle += 0.08;
                         obstacles[i].y += Math.sin(obstacles[i].shipAngle) * 0.8;
+
+                        if (obstacles[i].canShoot) {
+                            obstacles[i].shootTimer++;
+                            if (obstacles[i].shootTimer >= obstacles[i].shootInterval) {
+                                obstacles[i].shootTimer = 0;
+                                enemyBullets.push({
+                                    x: obstacles[i].x + obstacles[i].width / 2,
+                                    y: obstacles[i].y + obstacles[i].height,
+                                    vx: -3,
+                                    vy: 4,
+                                    width: 6,
+                                    height: 12
+                                });
+                            }
+                        }
                     }
 
                     if (obstacles[i].x + obstacles[i].width < 0) {
@@ -488,6 +570,31 @@
                         if (rx < ox + ow && rx + rw > ox && ry < oy + oh && ry + rh > oy) {
                             gameOver = true;
                         }
+                    }
+                }
+
+                for (let i = enemyBullets.length - 1; i >= 0; i--) {
+                    enemyBullets[i].x += enemyBullets[i].vx;
+                    enemyBullets[i].y += enemyBullets[i].vy;
+
+                    if (enemyBullets[i].x < 0 || enemyBullets[i].y > 340) {
+                        enemyBullets.splice(i, 1);
+                        continue;
+                    }
+
+                    let rx = rover.x + 10;
+                    let ry = rover.y + 5;
+                    let rw = rover.width - 20;
+                    let rh = rover.height - 5;
+
+                    if (
+                        enemyBullets[i].x < rx + rw &&
+                        enemyBullets[i].x + enemyBullets[i].width > rx &&
+                        enemyBullets[i].y < ry + rh &&
+                        enemyBullets[i].y + enemyBullets[i].height > ry
+                    ) {
+                        enemyBullets.splice(i, 1);
+                        gameOver = true;
                     }
                 }
 
@@ -544,7 +651,7 @@
 
             ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
             clouds.forEach(c => {
-                if (!gameOver) {
+                if (!gameOver && gameStarted) {
                     c.x -= c.speed;
                     if (c.x < -100) c.x = canvas.width + 50;
                 }
@@ -557,7 +664,7 @@
 
             ctx.fillStyle = '#4682B4';
             farMountains.forEach(m => {
-                if (!gameOver) {
+                if (!gameOver && gameStarted) {
                     m.x -= m.speed;
                     if (m.x + m.width < 0) m.x = canvas.width;
                 }
@@ -570,7 +677,7 @@
 
             ctx.fillStyle = '#2E8B57';
             closeHills.forEach(h => {
-                if (!gameOver) {
+                if (!gameOver && gameStarted) {
                     h.x -= h.speed;
                     if (h.x + h.width < 0) h.x = canvas.width;
                 }
@@ -584,7 +691,7 @@
 
             ctx.fillStyle = '#228B22';
             sceneryBushes.forEach(b => {
-                if (!gameOver) {
+                if (!gameOver && gameStarted) {
                     b.x -= gameSpeed;
                     if (b.x < -30) b.x = canvas.width + Math.random() * 50;
                 }
@@ -643,7 +750,7 @@
                     ctx.fill();
                     ctx.stroke();
                 } else if (obs.type === 'ship') {
-                    ctx.fillStyle = '#9933ff';
+                    ctx.fillStyle = obs.canShoot ? '#ff33ff' : '#9933ff';
                     ctx.strokeStyle = '#000';
                     ctx.lineWidth = 2;
                     ctx.beginPath();
@@ -665,6 +772,16 @@
             bullets.forEach(b => {
                 ctx.beginPath();
                 ctx.arc(b.x, b.y + 3, 6, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+            });
+
+            ctx.fillStyle = '#ff3333';
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 1.5;
+            enemyBullets.forEach(eb => {
+                ctx.beginPath();
+                ctx.arc(eb.x, eb.y, 5, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.stroke();
             });
@@ -692,7 +809,7 @@
             ctx.shadowBlur = 0;
         }
 
-        loop();
+        drawScene();
     </script>
 </body>
 </html>
