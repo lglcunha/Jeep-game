@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Jeep Militar Gemer</title>
+    <title>Jeep Militar Gamer</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap');
 
@@ -75,6 +75,7 @@
             line-height: 1.4;
         }
 
+        /* Oculto por padrão, ativado apenas via script se for mobile */
         #mobile-controls {
             display: none;
             width: 100%;
@@ -126,16 +127,6 @@
             transform: translateY(4px);
             box-shadow: 0 0 0 #2e3b19;
         }
-
-        @media (max-width: 900px), (pointer: coarse) {
-            #mobile-controls {
-                display: flex;
-            }
-            body {
-                justify-content: flex-start;
-                padding-top: 5px;
-            }
-        }
     </style>
 </head>
 <body>
@@ -166,6 +157,27 @@
     </div>
 
     <script>
+        // Detecção inteligente de Dispositivo Móvel (Celular/Tablet)
+        function isMobileDevice() {
+            return (
+                /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+                ('maxTouchPoints' in navigator && navigator.maxTouchPoints > 0) ||
+                window.innerWidth <= 900
+            );
+        }
+
+        // Ativa os controles virtuais na tela apenas se for detectado celular
+        window.addEventListener('DOMContentLoaded', () => {
+            if (isMobileDevice()) {
+                const mobileControls = document.getElementById('mobile-controls');
+                if (mobileControls) {
+                    mobileControls.style.display = 'flex';
+                }
+                document.body.style.justifyContent = 'flex-start';
+                document.body.style.paddingTop = '5px';
+            }
+        });
+
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
 
