@@ -13,6 +13,7 @@
             box-sizing: border-box;
             user-select: none;
             -webkit-user-select: none;
+            -webkit-touch-callout: none;
         }
 
         body {
@@ -41,6 +42,7 @@
             border-radius: 15px;
             overflow: hidden;
             background: #87ceeb;
+            cursor: pointer;
         }
 
         canvas {
@@ -75,58 +77,6 @@
             max-width: 800px;
             width: 95%;
             line-height: 1.4;
-        }
-
-        #mobile-controls {
-            display: none;
-            width: 100%;
-            max-width: 800px;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 10px;
-            padding: 0 15px;
-        }
-
-        .left-control {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .right-control {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .right-row {
-            display: flex;
-            gap: 6px;
-        }
-
-        .btn-ctrl {
-            background: #556b2f;
-            border: 3px solid #000;
-            color: #fff;
-            font-family: 'Fredoka One', cursive;
-            font-size: 15px;
-            padding: 12px 18px;
-            border-radius: 12px;
-            box-shadow: 0 4px 0 #2e3b19;
-            cursor: pointer;
-            outline: none;
-        }
-
-        .btn-large {
-            padding: 18px 24px;
-            font-size: 18px;
-            background: #4a6b22;
-        }
-
-        .btn-ctrl:active {
-            transform: translateY(4px);
-            box-shadow: 0 0 0 #2e3b19;
         }
 
         #start-screen {
@@ -179,12 +129,9 @@
         }
 
         @media (max-width: 900px), (pointer: coarse) {
-            #mobile-controls {
-                display: flex;
-            }
             body {
-                justify-content: flex-start;
-                padding-top: 5px;
+                justify-content: center;
+                padding-top: 0;
             }
         }
     </style>
@@ -206,19 +153,7 @@
     </div>
     
     <div id="instructions">
-        🎮 **Como Jogar:** Salte sobre buracos e obstáculos terrestres, desvie ou destrua os inimigos disparando para a frente ou para cima. Você pode **atirar enquanto pula**!
-    </div>
-
-    <div id="mobile-controls">
-        <div class="left-control">
-            <button class="btn-ctrl btn-large" id="btnJump">⬆ PULAR</button>
-        </div>
-        <div class="right-control">
-            <button class="btn-ctrl" id="btnShootUp">⬆ TIRO CIMA</button>
-            <div class="right-row">
-                <button class="btn-ctrl" id="btnShoot">➡ TIRO FRENTE</button>
-            </div>
-        </div>
+        🎮 **Como Jogar:** Toque na **metade esquerda** da tela para **Pular**, e na **metade direita** para **Atirar** (ou use as setas e espaço no teclado).
     </div>
 
     <script>
@@ -230,6 +165,7 @@
         const startScreen = document.getElementById('start-screen');
         const btnStartGame = document.getElementById('btnStartGame');
         const orientationAlert = document.getElementById('orientation-alert');
+        const gameContainer = document.getElementById('game-container');
 
         let gameStarted = false;
         let score = 0;
@@ -260,20 +196,43 @@
         });
         window.addEventListener('keyup', e => keys[e.code] = false);
 
-        const btnJump = document.getElementById('btnJump');
-        const btnShoot = document.getElementById('btnShoot');
-        const btnShootUp = document.getElementById('btnShootUp');
+        // Controles táteis por toque na tela dividida (Esquerda = Pular, Direita = Atirar)
+        gameContainer.addEventListener('touchstart', (e) => {
+            if (!gameStarted) return;
+            e.preventDefault();
+            
+            if (gameOver) {
+                resetGame();
+                return;
+            }
 
-        function setupTouchButton(btn, keyCode) {
-            btn.addEventListener('touchstart', (e) => { e.preventDefault(); keys[keyCode] = true; if(keyCode === 'KeyR' && gameOver) resetGame(); });
-            btn.addEventListener('touchend', (e) => { e.preventDefault(); keys[keyCode] = false; });
-            btn.addEventListener('mousedown', (e) => { e.preventDefault(); keys[keyCode] = true; if(keyCode === 'KeyR' && gameOver) resetGame(); });
-            btn.addEventListener('mouseup', (e) => { e.preventDefault(); keys[keyCode] = false; });
-        }
+            for (let i = 0; i < e.changedTouches.length; i++) {
+                const touchX = e.changedTouches[i].clientX;
+                const rect = gameContainer.getBoundingClientRect();
+                const relativeX = touchX - rect.left;
 
-        setupTouchButton(btnJump, 'Space');
-        setupTouchButton(btnShoot, 'ArrowRight');
-        setupTouchButton(btnShootUp, 'ArrowUp');
+                if (relativeX < rect.width / 2) {
+                    rover.jump();
+                } else {
+                    shoot(false);
+                }
+            }
+        }, { passive: false });
+
+        gameContainer.addEventListener('click', (e) => {
+            if (!gameStarted) return;
+            if (gameOver) {
+                resetGame();
+                return;
+            }
+            const rect = gameContainer.getBoundingClientRect();
+            const relativeX = e.clientX - rect.left;
+            if (relativeX < rect.width / 2) {
+                rover.jump();
+            } else {
+                shoot(false);
+            }
+        });
 
         btnStartGame.addEventListener('click', () => {
             startScreen.style.display = 'none';
@@ -805,7 +764,7 @@
 
             ctx.fillStyle = '#ffcc00';
             ctx.font = '20px "Fredoka One", cursive';
-            ctx.fillText("APERTE R PARA RECOMEÇAR", canvas.width / 2, canvas.height / 2 + 20);
+            ctx.fillText("TOQUE PARA RECOMEÇAR", canvas.width / 2, canvas.height / 2 + 20);
             ctx.shadowBlur = 0;
         }
 
