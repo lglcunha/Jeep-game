@@ -35,7 +35,7 @@
         #game-container {
             position: relative;
             width: 100%;
-            max-width: 800px;
+            max-width: 1000px;
             aspect-ratio: 2 / 1;
             box-shadow: 0 12px 30px rgba(0,0,0,0.6);
             border: 4px solid #4d662b;
@@ -64,21 +64,6 @@
             z-index: 10;
         }
 
-        #instructions {
-            margin-top: 10px;
-            text-align: center;
-            font-size: clamp(11px, 2.2vw, 15px);
-            color: #b3d9ff;
-            text-shadow: 1px 1px 2px #000;
-            background: rgba(0, 0, 0, 0.4);
-            padding: 6px 12px;
-            border-radius: 10px;
-            border: 2px solid #4d662b;
-            max-width: 800px;
-            width: 95%;
-            line-height: 1.4;
-        }
-
         #start-screen {
             position: absolute;
             top: 0;
@@ -102,22 +87,88 @@
             text-align: center;
         }
 
-        #btnStartGame {
-            background: #2ecc71;
+        .menu-buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .game-btn {
             border: 4px solid #000;
             color: #fff;
             font-family: 'Fredoka One', cursive;
-            font-size: 22px;
-            padding: 15px 35px;
+            font-size: 20px;
+            padding: 12px 30px;
             border-radius: 15px;
-            box-shadow: 0 6px 0 #1b7943;
             cursor: pointer;
             outline: none;
+        }
+
+        #btnStartGame {
+            background: #2ecc71;
+            box-shadow: 0 6px 0 #1b7943;
         }
 
         #btnStartGame:active {
             transform: translateY(6px);
             box-shadow: 0 0 0 #1b7943;
+        }
+
+        #btnHelpMenu {
+            background: #3498db;
+            box-shadow: 0 6px 0 #20639b;
+        }
+
+        #btnHelpMenu:active {
+            transform: translateY(6px);
+            box-shadow: 0 0 0 #20639b;
+        }
+
+        /* Modal de Ajuda */
+        #help-modal {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 30;
+            padding: 20px;
+            text-align: center;
+        }
+
+        #help-modal h2 {
+            color: #ffcc00;
+            margin-top: 0;
+            font-size: 24px;
+            text-shadow: 2px 2px #000;
+        }
+
+        #help-modal p {
+            font-size: clamp(12px, 3vw, 16px);
+            max-width: 600px;
+            line-height: 1.5;
+            color: #d1e8ff;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #4d662b;
+        }
+
+        #btnCloseHelp {
+            background: #e74c3c;
+            box-shadow: 0 6px 0 #962d22;
+            margin-top: 10px;
+        }
+
+        #btnCloseHelp:active {
+            transform: translateY(6px);
+            box-shadow: 0 0 0 #962d22;
         }
 
         #orientation-alert {
@@ -126,12 +177,21 @@
             background: rgba(0,0,0,0.5);
             padding: 5px 10px;
             border-radius: 5px;
+            text-align: center;
         }
 
         @media (max-width: 900px), (pointer: coarse) {
             body {
                 justify-content: center;
-                padding-top: 0;
+                padding: 0;
+            }
+            #game-container {
+                width: 100vw;
+                height: 100vh;
+                max-width: none;
+                border: none;
+                border-radius: 0;
+                aspect-ratio: auto;
             }
         }
     </style>
@@ -139,21 +199,33 @@
 <body>
 
     <div id="game-container">
+        <!-- Tela Inicial -->
         <div id="start-screen">
             <h1>JEEP MILITAR GAME</h1>
-            <div id="orientation-alert">📱 Posição do Celular: Retrato</div>
-            <button id="btnStartGame">INICIAR JOGO</button>
+            <div id="orientation-alert">📱 Posicione o celular na horizontal (Paisagem) para jogar em tela cheia!</div>
+            <div class="menu-buttons">
+                <button id="btnStartGame" class="game-btn">INICIAR JOGO</button>
+                <button id="btnHelpMenu" class="game-btn">❓ AJUDA</button>
+            </div>
+        </div>
+
+        <!-- Tela de Ajuda -->
+        <div id="help-modal">
+            <h2>COMO JOGAR</h2>
+            <p>
+                🎮 <strong>Controles:</strong><br>
+                • Toque na <strong>metade esquerda</strong> da tela para <strong>Pular</strong>.<br>
+                • Toque na <strong>metade direita</strong> da tela para <strong>Atirar</strong>.<br>
+                • No teclado: Use as <strong>setas direcionais / W-A-S-D</strong> e a barra de <strong>Espaço</strong> para pular.
+            </p>
+            <button id="btnCloseHelp" class="game-btn">VOLTAR</button>
         </div>
 
         <div id="ui">
-            <div>⭐ PONTOS: <span id="scoreVal">0</span></div>
+            <div>⭐ PT: <span id="scoreVal">0</span> &nbsp; HI: <span id="hiVal">00000</span></div>
             <div>⚡ STATUS: <span id="statusVal" style="color: #00ffcc;">AGUARDANDO</span></div>
         </div>
         <canvas id="gameCanvas" width="800" height="400"></canvas>
-    </div>
-    
-    <div id="instructions">
-        🎮 **Como Jogar:** Toque na **metade esquerda** da tela para **Pular**, e na **metade direita** para **Atirar** (ou use as setas e espaço no teclado).
     </div>
 
     <script>
@@ -161,24 +233,31 @@
         const ctx = canvas.getContext('2d');
 
         const scoreVal = document.getElementById('scoreVal');
+        const hiVal = document.getElementById('hiVal');
         const statusVal = document.getElementById('statusVal');
         const startScreen = document.getElementById('start-screen');
         const btnStartGame = document.getElementById('btnStartGame');
+        const btnHelpMenu = document.getElementById('btnHelpMenu');
+        const helpModal = document.getElementById('help-modal');
+        const btnCloseHelp = document.getElementById('btnCloseHelp');
         const orientationAlert = document.getElementById('orientation-alert');
         const gameContainer = document.getElementById('game-container');
 
         let gameStarted = false;
         let score = 0;
+        let highScore = localStorage.getItem('jeep_highScore') || 0;
+        hiVal.innerText = String(highScore).padStart(5, '0');
+
         let gameOver = false;
         let gameSpeed = 4;
         let distanceTraveled = 0;
 
         function checkOrientation() {
             if (window.innerHeight > window.innerWidth) {
-                orientationAlert.innerText = "📱 Posição: Retrato (Vertical) - Vire na horizontal para melhor experiência";
+                orientationAlert.innerText = "📱 Por favor, vire o celular para o modo HORIZONTAIS (Paisagem)!";
                 orientationAlert.style.color = "#ffcc00";
             } else {
-                orientationAlert.innerText = "📱 Posição: Paisagem (Horizontal) - Perfeito!";
+                orientationAlert.innerText = "📱 Perfeito! Pronto para iniciar.";
                 orientationAlert.style.color = "#00ffcc";
             }
         }
@@ -187,18 +266,32 @@
         window.addEventListener('orientationchange', checkOrientation);
         checkOrientation();
 
+        // Menu de Ajuda
+        btnHelpMenu.addEventListener('click', () => {
+            helpModal.style.display = 'flex';
+        });
+
+        btnCloseHelp.addEventListener('click', () => {
+            helpModal.style.display = 'none';
+        });
+
         const keys = {};
         window.addEventListener('keydown', e => {
             keys[e.code] = true;
             if (e.code === 'KeyR' && gameOver) {
                 resetGame();
             }
+            if (e.code === 'ArrowRight' || e.code === 'KeyD') {
+                shoot(false);
+            }
+            if (e.code === 'ArrowUp' || e.code === 'KeyW') {
+                shoot(true);
+            }
         });
         window.addEventListener('keyup', e => keys[e.code] = false);
 
-        // Controles táteis por toque na tela dividida (Esquerda = Pular, Direita = Atirar)
         gameContainer.addEventListener('touchstart', (e) => {
-            if (!gameStarted) return;
+            if (!gameStarted || helpModal.style.display === 'flex') return;
             e.preventDefault();
             
             if (gameOver) {
@@ -214,13 +307,19 @@
                 if (relativeX < rect.width / 2) {
                     rover.jump();
                 } else {
-                    shoot(false);
+                    const touchY = e.changedTouches[i].clientY;
+                    const relativeY = touchY - rect.top;
+                    if (relativeY < rect.height / 2) {
+                        shoot(true);
+                    } else {
+                        shoot(false);
+                    }
                 }
             }
         }, { passive: false });
 
         gameContainer.addEventListener('click', (e) => {
-            if (!gameStarted) return;
+            if (!gameStarted || helpModal.style.display === 'flex') return;
             if (gameOver) {
                 resetGame();
                 return;
@@ -278,9 +377,15 @@
                 ctx.lineTo(25, -5);
                 ctx.closePath();
                 ctx.fill();
+                ctx.beginPath();
+                ctx.moveTo(-15, -5);
+                ctx.lineTo(-5, -20);
+                ctx.lineTo(20, -20);
+                ctx.lineTo(25, -5);
+                ctx.closePath();
                 ctx.stroke();
 
-                ctx.fillStyle = '#87ceeb';
+                ctx.fillStyle = getWindowColor();
                 ctx.beginPath();
                 ctx.moveTo(-12, -7);
                 ctx.lineTo(-4, -18);
@@ -288,7 +393,6 @@
                 ctx.lineTo(22, -7);
                 ctx.closePath();
                 ctx.fill();
-                ctx.stroke();
 
                 ctx.fillStyle = '#222';
                 ctx.fillRect(5, -28, 22, 5);
@@ -337,9 +441,19 @@
             }
         };
 
+        function getWindowColor() {
+            if (timeOfDay === 'night') return '#224466';
+            if (timeOfDay === 'sunset') return '#ffcc99';
+            return '#87ceeb';
+        }
+
         let bullets = [];
         let enemyBullets = [];
+        let raindrops = [];
+        let lightnings = [];
+        let lightningTimer = 0;
         let lastShotTime = 0;
+        let timeOfDay = 'morning';
 
         function shoot(upward) {
             if (rover.isFallingInPit || gameOver || !gameStarted) return;
@@ -382,13 +496,13 @@
                 obs.height = 12;
                 obs.y = 320;
             } else if (type === 'log') {
-                obs.width = 45;
-                obs.height = 24;
-                obs.y = 296;
+                obs.width = 50;
+                obs.height = 25;
+                obs.y = 295;
             } else if (type === 'rock') {
-                obs.width = 34;
-                obs.height = 28;
-                obs.y = 292;
+                obs.width = 38;
+                obs.height = 30;
+                obs.y = 290;
             } else if (type === 'ship') {
                 obs.width = 45;
                 obs.height = 22;
@@ -431,6 +545,8 @@
             obstacles = [];
             bullets = [];
             enemyBullets = [];
+            raindrops = [];
+            lightnings = [];
             gameSpeed = 4;
             rover.y = 280;
             rover.vy = 0;
@@ -459,16 +575,39 @@
                 scoreVal.innerText = score;
                 gameSpeed = 4 + Math.floor(score / 200);
 
+                if (score < 500) {
+                    timeOfDay = 'morning';
+                } else if (score < 1000) {
+                    timeOfDay = 'sunset';
+                } else {
+                    timeOfDay = 'night';
+                }
+
+                let isRaining = Math.floor(score / 1500) % 2 === 1;
+                if (isRaining) {
+                    if (raindrops.length < 60) {
+                        raindrops.push({
+                            x: Math.random() * canvas.width,
+                            y: -10,
+                            speed: 8 + Math.random() * 4,
+                            length: 15 + Math.random() * 10
+                        });
+                    }
+
+                    // Raios sem clarões (apenas dano/efeito lateral sem flash na tela inteira)
+                    lightningTimer++;
+                    if (lightningTimer > 120 + Math.random() * 150) {
+                        lightningTimer = 0;
+                        let rx = Math.random() * canvas.width;
+                        lightnings.push({ x: rx, alpha: 1.0 });
+                        if (Math.abs(rx - (rover.x + rover.width/2)) < 60) {
+                            gameOver = true;
+                        }
+                    }
+                }
+
                 if (keys['Space']) {
                     rover.jump();
-                }
-
-                if (keys['ArrowRight']) {
-                    shoot(false);
-                }
-
-                if (keys['ArrowUp']) {
-                    shoot(true);
                 }
             }
 
@@ -603,12 +742,20 @@
 
         function drawScene() {
             let skyGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
-            skyGrad.addColorStop(0, '#1E90FF');
-            skyGrad.addColorStop(1, '#87CEEB');
+            if (timeOfDay === 'night') {
+                skyGrad.addColorStop(0, '#0b0f19');
+                skyGrad.addColorStop(1, '#1b2a4a');
+            } else if (timeOfDay === 'sunset') {
+                skyGrad.addColorStop(0, '#4a154b');
+                skyGrad.addColorStop(1, '#ff751a');
+            } else {
+                skyGrad.addColorStop(0, '#1E90FF');
+                skyGrad.addColorStop(1, '#87CEEB');
+            }
             ctx.fillStyle = skyGrad;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+            ctx.fillStyle = timeOfDay === 'night' ? 'rgba(100, 100, 120, 0.5)' : 'rgba(255, 255, 255, 0.85)';
             clouds.forEach(c => {
                 if (!gameOver && gameStarted) {
                     c.x -= c.speed;
@@ -621,7 +768,7 @@
                 ctx.fill();
             });
 
-            ctx.fillStyle = '#4682B4';
+            ctx.fillStyle = timeOfDay === 'night' ? '#1c2833' : '#4682B4';
             farMountains.forEach(m => {
                 if (!gameOver && gameStarted) {
                     m.x -= m.speed;
@@ -634,7 +781,7 @@
                 ctx.fill();
             });
 
-            ctx.fillStyle = '#2E8B57';
+            ctx.fillStyle = timeOfDay === 'night' ? '#145a32' : '#2E8B57';
             closeHills.forEach(h => {
                 if (!gameOver && gameStarted) {
                     h.x -= h.speed;
@@ -648,7 +795,7 @@
                 ctx.stroke();
             });
 
-            ctx.fillStyle = '#228B22';
+            ctx.fillStyle = timeOfDay === 'night' ? '#0e3a1d' : '#228B22';
             sceneryBushes.forEach(b => {
                 if (!gameOver && gameStarted) {
                     b.x -= gameSpeed;
@@ -664,9 +811,9 @@
                 ctx.stroke();
             });
 
-            ctx.fillStyle = '#8B4513';
+            ctx.fillStyle = timeOfDay === 'night' ? '#3d2817' : '#8B4513';
             ctx.fillRect(0, 320, canvas.width, 80);
-            ctx.fillStyle = '#32CD32';
+            ctx.fillStyle = timeOfDay === 'night' ? '#1b4d1e' : '#32CD32';
             ctx.fillRect(0, 320, canvas.width, 12);
             ctx.strokeStyle = '#000';
             ctx.lineWidth = 3;
@@ -675,37 +822,63 @@
             ctx.lineTo(canvas.width, 320);
             ctx.stroke();
 
+            // Obstáculos Realistas (Trato detalhado em Pedras e Troncos)
             obstacles.forEach(obs => {
                 ctx.save();
                 if (obs.type === 'pit') {
                     ctx.fillStyle = '#111';
                     ctx.fillRect(obs.x, obs.y, obs.width, 80);
                 } else if (obs.type === 'rock') {
-                    ctx.fillStyle = '#808080';
-                    ctx.strokeStyle = '#000';
+                    // Pedra mais realista com gradiente e relevo acinzentado
+                    let rockGrad = ctx.createLinearGradient(obs.x, obs.y, obs.x, obs.y + obs.height);
+                    rockGrad.addColorStop(0, '#999999');
+                    rockGrad.addColorStop(0.5, '#666666');
+                    rockGrad.addColorStop(1, '#444444');
+                    ctx.fillStyle = rockGrad;
+                    ctx.strokeStyle = '#1a1a1a';
                     ctx.lineWidth = 2;
+
                     ctx.beginPath();
-                    ctx.moveTo(obs.x + 6, obs.y + obs.height);
-                    ctx.lineTo(obs.x, obs.y + 14);
-                    ctx.quadraticCurveTo(obs.x + 4, obs.y, obs.x + 16, obs.y + 2);
-                    ctx.quadraticCurveTo(obs.x + obs.width, obs.y - 2, obs.x + obs.width - 2, obs.y + 16);
-                    ctx.lineTo(obs.x + obs.width, obs.y + obs.height);
+                    ctx.moveTo(obs.x + 8, obs.y + obs.height);
+                    ctx.lineTo(obs.x + 2, obs.y + 16);
+                    ctx.quadraticCurveTo(obs.x + 6, obs.y + 2, obs.x + 18, obs.y + 4);
+                    ctx.lineTo(obs.x + obs.width - 6, obs.y);
+                    ctx.quadraticCurveTo(obs.x + obs.width, obs.y + 10, obs.x + obs.width - 2, obs.y + obs.height);
                     ctx.closePath();
                     ctx.fill();
                     ctx.stroke();
 
-                    ctx.strokeStyle = '#555';
+                    // Detalhe interno de fissura na pedra
+                    ctx.strokeStyle = '#333';
                     ctx.lineWidth = 1.5;
                     ctx.beginPath();
-                    ctx.moveTo(obs.x + 14, obs.y + 8);
-                    ctx.lineTo(obs.x + 18, obs.y + 18);
+                    ctx.moveTo(obs.x + 14, obs.y + 12);
+                    ctx.lineTo(obs.x + 22, obs.y + 20);
                     ctx.stroke();
                 } else if (obs.type === 'log') {
-                    ctx.fillStyle = '#A0522D';
-                    ctx.strokeStyle = '#000';
+                    // Tronco de árvore mais realista (com textura de madeira e anéis nas pontas)
+                    ctx.fillStyle = '#7a431d';
+                    ctx.strokeStyle = '#2d1506';
                     ctx.lineWidth = 2;
                     ctx.beginPath();
-                    ctx.roundRect(obs.x, obs.y, obs.width, obs.height, 6);
+                    ctx.roundRect(obs.x, obs.y, obs.width, obs.height, 8);
+                    ctx.fill();
+                    ctx.stroke();
+
+                    // Textura de casca (veias do tronco)
+                    ctx.strokeStyle = '#4a260f';
+                    ctx.lineWidth = 1.5;
+                    ctx.beginPath();
+                    ctx.moveTo(obs.x + 12, obs.y + 4);
+                    ctx.lineTo(obs.x + 18, obs.y + obs.height - 4);
+                    ctx.moveTo(obs.x + 28, obs.y + 4);
+                    ctx.lineTo(obs.x + 34, obs.y + obs.height - 4);
+                    ctx.stroke();
+
+                    // Anel da ponta do tronco (lateral esquerda)
+                    ctx.fillStyle = '#d2b48c';
+                    ctx.beginPath();
+                    ctx.ellipse(obs.x + 4, obs.y + obs.height / 2, 4, obs.height / 2 - 2, 0, 0, Math.PI * 2);
                     ctx.fill();
                     ctx.stroke();
                 } else if (obs.type === 'ship') {
@@ -745,12 +918,52 @@
                 ctx.stroke();
             });
 
+            if (Math.floor(score / 1500) % 2 === 1) {
+                ctx.strokeStyle = 'rgba(170, 210, 255, 0.6)';
+                ctx.lineWidth = 1.5;
+                raindrops.forEach(drop => {
+                    if (!gameOver && gameStarted) {
+                        drop.y += drop.speed;
+                        drop.x -= 1;
+                        if (drop.y > canvas.height) {
+                            drop.y = -10;
+                            drop.x = Math.random() * canvas.width;
+                        }
+                    }
+                    ctx.beginPath();
+                    ctx.moveTo(drop.x, drop.y);
+                    ctx.lineTo(drop.x - 1, drop.y + drop.length);
+                    ctx.stroke();
+                });
+
+                // Desenho do raio sem clarão na tela inteira (apenas o traço do relâmpago caindo)
+                lightnings.forEach((l, index) => {
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.moveTo(l.x, 0);
+                    ctx.lineTo(l.x - 10, 100);
+                    ctx.lineTo(l.x + 5, 200);
+                    ctx.lineTo(l.x - 5, 320);
+                    ctx.stroke();
+
+                    l.alpha -= 0.15;
+                    if (l.alpha <= 0) lightnings.splice(index, 1);
+                });
+            }
+
             rover.draw();
         }
 
         function drawGameOverScreen() {
             statusVal.innerText = "GAME OVER";
             statusVal.style.color = "#ff3333";
+
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('jeep_highScore', highScore);
+                hiVal.innerText = String(highScore).padStart(5, '0');
+            }
 
             ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
