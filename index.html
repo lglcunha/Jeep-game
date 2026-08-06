@@ -32,14 +32,21 @@
             touch-action: none;
         }
 
+        #game-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 1000px;
+        }
+
         #game-container {
             position: relative;
             width: 100%;
-            max-width: 1000px;
             aspect-ratio: 2 / 1;
             box-shadow: 0 12px 30px rgba(0,0,0,0.6);
             border: 4px solid #4d662b;
-            border-radius: 15px;
+            border-radius: 15px 15px 0 0;
             overflow: hidden;
             background: #87ceeb;
             cursor: pointer;
@@ -49,6 +56,49 @@
             width: 100%;
             height: 100%;
             display: block;
+        }
+
+        /* Faixa de botões externos para smartphones */
+        #mobile-controls {
+            display: none;
+            width: 100%;
+            background: rgba(20, 15, 35, 0.95);
+            border: 4px solid #4d662b;
+            border-top: none;
+            border-radius: 0 0 15px 15px;
+            padding: 10px 15px;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            z-index: 25;
+        }
+
+        .ctrl-group {
+            display: flex;
+            gap: 10px;
+            flex: 1;
+            justify-content: center;
+        }
+
+        .mob-btn {
+            background: rgba(255, 255, 255, 0.15);
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            color: #fff;
+            font-family: 'Fredoka One', cursive;
+            font-size: clamp(14px, 3.5vw, 18px);
+            padding: 12px 0;
+            border-radius: 10px;
+            cursor: pointer;
+            flex: 1;
+            text-align: center;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.4);
+            transition: background 0.1s, transform 0.1s;
+        }
+
+        .mob-btn:active, .mob-btn.pressed {
+            background: rgba(255, 255, 255, 0.35);
+            transform: translateY(4px);
+            box-shadow: 0 0 0 rgba(0,0,0,0.4);
         }
 
         #ui {
@@ -183,49 +233,63 @@
         @media (max-width: 900px), (pointer: coarse) {
             body {
                 justify-content: center;
-                padding: 0;
+                padding: 5px;
+            }
+            #game-wrapper {
+                width: 100%;
             }
             #game-container {
-                width: 100vw;
-                height: 100vh;
-                max-width: none;
-                border: none;
-                border-radius: 0;
-                aspect-ratio: auto;
+                border-radius: 15px 15px 0 0;
+                border-bottom: none;
+            }
+            #mobile-controls {
+                display: flex;
             }
         }
     </style>
 </head>
 <body>
 
-    <div id="game-container">
-        <!-- Tela Inicial -->
-        <div id="start-screen">
-            <h1>JEEP MILITAR GAME</h1>
-            <div id="orientation-alert">📱 Posicione o celular na horizontal (Paisagem) para jogar em tela cheia!</div>
-            <div class="menu-buttons">
-                <button id="btnStartGame" class="game-btn">INICIAR JOGO</button>
-                <button id="btnHelpMenu" class="game-btn">❓ AJUDA</button>
+    <div id="game-wrapper">
+        <div id="game-container">
+            <!-- Tela Inicial -->
+            <div id="start-screen">
+                <h1>JEEP MILITAR GAME</h1>
+                <div id="orientation-alert">📱 Posicione o celular na horizontal (Paisagem)!</div>
+                <div class="menu-buttons">
+                    <button id="btnStartGame" class="game-btn">INICIAR JOGO</button>
+                    <button id="btnHelpMenu" class="game-btn">❓ AJUDA</button>
+                </div>
+            </div>
+
+            <!-- Tela de Ajuda -->
+            <div id="help-modal">
+                <h2>COMO JOGAR</h2>
+                <p>
+                    🎮 <strong>Controles:</strong><br>
+                    • Use a <strong>faixa de botões transparente</strong> logo abaixo da tela do jogo para <strong>Pular</strong> e <strong>Atirar</strong> (Frente/Alto).<br>
+                    • No teclado: Use as <strong>setas direcionais / W-A-S-D</strong> e a barra de <strong>Espaço</strong> para pular.
+                </p>
+                <button id="btnCloseHelp" class="game-btn">VOLTAR</button>
+            </div>
+
+            <div id="ui">
+                <div>⭐ PT: <span id="scoreVal">0</span> &nbsp; HI: <span id="hiVal">00000</span></div>
+                <div>⚡ STATUS: <span id="statusVal" style="color: #00ffcc;">AGUARDANDO</span></div>
+            </div>
+            <canvas id="gameCanvas" width="800" height="400"></canvas>
+        </div>
+
+        <!-- Faixa de botões transparentes abaixo da tela do jogo -->
+        <div id="mobile-controls">
+            <div class="ctrl-group">
+                <button id="btnJump" class="mob-btn">⬆️ PULAR</button>
+            </div>
+            <div class="ctrl-group">
+                <button id="btnShootFront" class="mob-btn">💥 FRENTE</button>
+                <button id="btnShootUp" class="mob-btn">🚀 ALTO</button>
             </div>
         </div>
-
-        <!-- Tela de Ajuda -->
-        <div id="help-modal">
-            <h2>COMO JOGAR</h2>
-            <p>
-                🎮 <strong>Controles:</strong><br>
-                • Toque na <strong>metade esquerda</strong> da tela para <strong>Pular</strong>.<br>
-                • Toque na <strong>metade direita</strong> da tela para <strong>Atirar</strong>.<br>
-                • No teclado: Use as <strong>setas direcionais / W-A-S-D</strong> e a barra de <strong>Espaço</strong> para pular.
-            </p>
-            <button id="btnCloseHelp" class="game-btn">VOLTAR</button>
-        </div>
-
-        <div id="ui">
-            <div>⭐ PT: <span id="scoreVal">0</span> &nbsp; HI: <span id="hiVal">00000</span></div>
-            <div>⚡ STATUS: <span id="statusVal" style="color: #00ffcc;">AGUARDANDO</span></div>
-        </div>
-        <canvas id="gameCanvas" width="800" height="400"></canvas>
     </div>
 
     <script>
@@ -241,7 +305,11 @@
         const helpModal = document.getElementById('help-modal');
         const btnCloseHelp = document.getElementById('btnCloseHelp');
         const orientationAlert = document.getElementById('orientation-alert');
-        const gameContainer = document.getElementById('game-container');
+
+        // Botões da faixa mobile
+        const btnJump = document.getElementById('btnJump');
+        const btnShootFront = document.getElementById('btnShootFront');
+        const btnShootUp = document.getElementById('btnShootUp');
 
         let gameStarted = false;
         let score = 0;
@@ -290,48 +358,25 @@
         });
         window.addEventListener('keyup', e => keys[e.code] = false);
 
-        gameContainer.addEventListener('touchstart', (e) => {
-            if (!gameStarted || helpModal.style.display === 'flex') return;
-            e.preventDefault();
-            
-            if (gameOver) {
-                resetGame();
-                return;
-            }
-
-            for (let i = 0; i < e.changedTouches.length; i++) {
-                const touchX = e.changedTouches[i].clientX;
-                const rect = gameContainer.getBoundingClientRect();
-                const relativeX = touchX - rect.left;
-
-                if (relativeX < rect.width / 2) {
-                    rover.jump();
-                } else {
-                    const touchY = e.changedTouches[i].clientY;
-                    const relativeY = touchY - rect.top;
-                    if (relativeY < rect.height / 2) {
-                        shoot(true);
-                    } else {
-                        shoot(false);
-                    }
+        // Eventos para os botões da faixa transparente mobile
+        const setupMobileButton = (btn, action) => {
+            const triggerAction = (e) => {
+                if (!gameStarted || helpModal.style.display === 'flex') return;
+                e.preventDefault();
+                if (gameOver) {
+                    resetGame();
+                    return;
                 }
-            }
-        }, { passive: false });
+                action();
+            };
 
-        gameContainer.addEventListener('click', (e) => {
-            if (!gameStarted || helpModal.style.display === 'flex') return;
-            if (gameOver) {
-                resetGame();
-                return;
-            }
-            const rect = gameContainer.getBoundingClientRect();
-            const relativeX = e.clientX - rect.left;
-            if (relativeX < rect.width / 2) {
-                rover.jump();
-            } else {
-                shoot(false);
-            }
-        });
+            btn.addEventListener('touchstart', triggerAction, { passive: false });
+            btn.addEventListener('click', triggerAction);
+        };
+
+        setupMobileButton(btnJump, () => rover.jump());
+        setupMobileButton(btnShootFront, () => shoot(false));
+        setupMobileButton(btnShootUp, () => shoot(true));
 
         btnStartGame.addEventListener('click', () => {
             startScreen.style.display = 'none';
@@ -594,7 +639,6 @@
                         });
                     }
 
-                    // Raios sem clarões (apenas dano/efeito lateral sem flash na tela inteira)
                     lightningTimer++;
                     if (lightningTimer > 120 + Math.random() * 150) {
                         lightningTimer = 0;
@@ -822,14 +866,12 @@
             ctx.lineTo(canvas.width, 320);
             ctx.stroke();
 
-            // Obstáculos Realistas (Trato detalhado em Pedras e Troncos)
             obstacles.forEach(obs => {
                 ctx.save();
                 if (obs.type === 'pit') {
                     ctx.fillStyle = '#111';
                     ctx.fillRect(obs.x, obs.y, obs.width, 80);
                 } else if (obs.type === 'rock') {
-                    // Pedra mais realista com gradiente e relevo acinzentado
                     let rockGrad = ctx.createLinearGradient(obs.x, obs.y, obs.x, obs.y + obs.height);
                     rockGrad.addColorStop(0, '#999999');
                     rockGrad.addColorStop(0.5, '#666666');
@@ -848,7 +890,6 @@
                     ctx.fill();
                     ctx.stroke();
 
-                    // Detalhe interno de fissura na pedra
                     ctx.strokeStyle = '#333';
                     ctx.lineWidth = 1.5;
                     ctx.beginPath();
@@ -856,7 +897,6 @@
                     ctx.lineTo(obs.x + 22, obs.y + 20);
                     ctx.stroke();
                 } else if (obs.type === 'log') {
-                    // Tronco de árvore mais realista (com textura de madeira e anéis nas pontas)
                     ctx.fillStyle = '#7a431d';
                     ctx.strokeStyle = '#2d1506';
                     ctx.lineWidth = 2;
@@ -865,7 +905,6 @@
                     ctx.fill();
                     ctx.stroke();
 
-                    // Textura de casca (veias do tronco)
                     ctx.strokeStyle = '#4a260f';
                     ctx.lineWidth = 1.5;
                     ctx.beginPath();
@@ -875,7 +914,6 @@
                     ctx.lineTo(obs.x + 34, obs.y + obs.height - 4);
                     ctx.stroke();
 
-                    // Anel da ponta do tronco (lateral esquerda)
                     ctx.fillStyle = '#d2b48c';
                     ctx.beginPath();
                     ctx.ellipse(obs.x + 4, obs.y + obs.height / 2, 4, obs.height / 2 - 2, 0, 0, Math.PI * 2);
@@ -936,7 +974,6 @@
                     ctx.stroke();
                 });
 
-                // Desenho do raio sem clarão na tela inteira (apenas o traço do relâmpago caindo)
                 lightnings.forEach((l, index) => {
                     ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
                     ctx.lineWidth = 3;
